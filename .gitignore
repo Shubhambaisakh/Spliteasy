@@ -2,13 +2,9 @@ target/
 *.class
 *.jar
 *.war
-*.ear
-*.tar.gz
 .idea/
 *.iml
-*.iws
-.project
-.classpath
-.settings/
+.vscode/
 .DS_Store
 *.log
+setup_db.bat
