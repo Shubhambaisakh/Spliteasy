@@ -2,6 +2,7 @@ package com.splitease;
 
 import com.splitease.entity.*;
 import com.splitease.repository.ExpenseRepository;
+import com.splitease.repository.ExpenseSplitRepository;
 import com.splitease.repository.GroupRepository;
 import com.splitease.repository.MemberRepository;
 import org.slf4j.Logger;
@@ -23,18 +24,34 @@ public class DataInitializer implements CommandLineRunner {
     private final GroupRepository groupRepository;
     private final MemberRepository memberRepository;
     private final ExpenseRepository expenseRepository;
+    private final ExpenseSplitRepository expenseSplitRepository;
 
     public DataInitializer(GroupRepository groupRepository,
                            MemberRepository memberRepository,
-                           ExpenseRepository expenseRepository) {
+                           ExpenseRepository expenseRepository,
+                           ExpenseSplitRepository expenseSplitRepository) {
         this.groupRepository = groupRepository;
         this.memberRepository = memberRepository;
         this.expenseRepository = expenseRepository;
+        this.expenseSplitRepository = expenseSplitRepository;
     }
 
     @Override
     @Transactional
     public void run(String... args) {
+        // Cleanup any inactive members with 0 transactions on boot
+        List<Member> allMembers = memberRepository.findAll();
+        for (Member m : allMembers) {
+            if (!m.getIsActive()) {
+                BigDecimal paid = expenseRepository.sumAmountPaidByMember(m.getGroup().getId(), m.getId());
+                BigDecimal owed = expenseSplitRepository.sumAmountOwedByMember(m.getGroup().getId(), m.getId());
+                if (paid.compareTo(BigDecimal.ZERO) == 0 && owed.compareTo(BigDecimal.ZERO) == 0) {
+                    memberRepository.delete(m);
+                    log.info("DataInitializer: cleaned up inactive member '{}' with 0 transactions.", m.getName());
+                }
+            }
+        }
+
         if (groupRepository.count() > 0) {
             log.info("DataInitializer: data already present, skipping seed.");
             return;

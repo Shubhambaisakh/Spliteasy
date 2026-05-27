@@ -8,6 +8,8 @@ import com.splitease.exception.GroupNotFoundException;
 import com.splitease.exception.MemberNotFoundException;
 import com.splitease.repository.GroupRepository;
 import com.splitease.repository.MemberRepository;
+import com.splitease.repository.ExpenseRepository;
+import com.splitease.repository.ExpenseSplitRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,10 +18,17 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final GroupRepository groupRepository;
+    private final ExpenseRepository expenseRepository;
+    private final ExpenseSplitRepository expenseSplitRepository;
 
-    public MemberService(MemberRepository memberRepository, GroupRepository groupRepository) {
+    public MemberService(MemberRepository memberRepository,
+                         GroupRepository groupRepository,
+                         ExpenseRepository expenseRepository,
+                         ExpenseSplitRepository expenseSplitRepository) {
         this.memberRepository = memberRepository;
         this.groupRepository = groupRepository;
+        this.expenseRepository = expenseRepository;
+        this.expenseSplitRepository = expenseSplitRepository;
     }
 
     @Transactional
@@ -42,8 +51,16 @@ public class MemberService {
     public void removeMember(Long groupId, Long memberId) {
         Member member = memberRepository.findByIdAndGroupId(memberId, groupId)
                 .orElseThrow(() -> new MemberNotFoundException(memberId, groupId));
-        member.setIsActive(false);
-        memberRepository.save(member);
+        
+        java.math.BigDecimal paid = expenseRepository.sumAmountPaidByMember(groupId, memberId);
+        java.math.BigDecimal owed = expenseSplitRepository.sumAmountOwedByMember(groupId, memberId);
+
+        if (paid.compareTo(java.math.BigDecimal.ZERO) == 0 && owed.compareTo(java.math.BigDecimal.ZERO) == 0) {
+            memberRepository.delete(member);
+        } else {
+            member.setIsActive(false);
+            memberRepository.save(member);
+        }
     }
 
     public static MemberResponse toResponse(Member member) {
