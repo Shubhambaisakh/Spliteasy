@@ -208,3 +208,55 @@ Both queues empty → done.
 - Space: O(N) for the two heaps.
 
 This greedy approach produces the minimum number of transactions when all balances sum to zero (which they always do in a closed group).
+
+---
+
+## Deployment Guide
+
+We provide multiple robust ways to deploy this full-stack application (Spring Boot API + PostgreSQL DB + SPA Web UI) for production or review.
+
+### 1. The Standard Containerized Deployment (Recommended)
+The project includes a multi-stage `Dockerfile` and a `docker-compose.yml` configuration. This is the absolute easiest way to run the entire backend, frontend, and database anywhere without installing Java, Maven, or PostgreSQL locally.
+
+**Requirements:**
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+
+**Run the command:**
+```bash
+docker-compose up --build
+```
+
+Docker will:
+1. Spin up a production-ready PostgreSQL instance (`db`).
+2. Build the Spring Boot application, download dependency layers, compile the Java source code, package the jar, and launch the server (`app`).
+3. Set up health checks ensuring the app only starts *after* the database is fully ready to accept connections.
+
+Access the gorgeous frontend UI instantly at: **`http://localhost:8080/api/`**
+
+---
+
+### 2. Cloud Deployment (Heroku, Render, AWS, Railway)
+Since the app is containerized, you can deploy it directly to the cloud for free/low cost:
+
+#### Option A: Render.com / Railway.app (Docker Web Service)
+1. Push your Git repository to GitHub.
+2. Create a **PostgreSQL Database Service** on Render/Railway.
+3. Create a **Web Service** on Render, link it to your GitHub repository, and select **Docker** as the runtime.
+4. Add the following Environment Variables in the Web Service configuration to link it to your live database:
+   * `SPRING_DATASOURCE_URL` = `jdbc:postgresql://<database-host>:<port>/<db-name>`
+   * `SPRING_DATASOURCE_USERNAME` = `<db-username>`
+   * `SPRING_DATASOURCE_PASSWORD` = `<db-password>`
+5. Deploy! Render will build the Docker container and serve it publicly.
+
+#### Option B: Heroku (Heroku Git / Container Registry)
+1. Install Heroku CLI and login: `heroku login`.
+2. Create a new application: `heroku create splitease-app`.
+3. Add the free Heroku Postgres add-on: `heroku addons:create heroku-postgresql:mini`.
+4. Deploy using the container runtime:
+   ```bash
+   heroku container:login
+   heroku container:push web
+   heroku container:release web
+   ```
+5. Heroku automatically injects the `DATABASE_URL` environment variable, which Spring Boot automatically maps to the database connection.
+
