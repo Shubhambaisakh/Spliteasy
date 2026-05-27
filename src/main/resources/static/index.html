@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SplitEase — Shared Expense Tracker</title>
+    <meta name="description" content="Calculate and track shared expenses among groups of friends. Beautiful layout with automated debt minimization.">
+    <!-- UI Styling -->
+    <link rel="stylesheet" href="/api/css/style.css">
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <nav class="navbar" id="app-nav">
+        <div class="nav-container">
+            <a href="/api/" class="brand" id="brand-logo">
+                <span class="brand-dot"></span>
+                <span>Split<span class="brand-accent">Ease</span></span>
+            </a>
+            <a href="/api/swagger-ui.html" target="_blank" class="swagger-link" id="nav-swagger-btn">
+                <span>⚡ Swagger API Docs</span>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content Dashboard -->
+    <main class="dashboard" id="main-dashboard">
+        
+        <!-- Left Column: Group & Members Info -->
+        <section class="sidebar" id="sidebar-left">
+            
+            <!-- Group Details Panel -->
+            <article class="glass-card" id="group-card">
+                <h1 class="group-title" id="display-group-name">Goa Trip 2024</h1>
+                <p class="group-desc" id="display-group-desc">Loading group details...</p>
+                <div class="group-meta">
+                    <div class="meta-item">
+                        <span class="meta-label">Created on</span>
+                        <span class="meta-value" id="display-group-date">Loading...</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-label">Total Spent</span>
+                        <span class="meta-value" id="display-total-spent" style="color: var(--primary);">₹0.00</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Members List Panel -->
+            <article class="glass-card" id="members-card">
+                <header class="card-title">
+                    <span>👥 Group Members</span>
+                    <button class="btn btn-primary" id="btn-add-member" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                        + Add
+                    </button>
+                </header>
+                <div class="member-list" id="members-container">
+                    <div class="empty-state">
+                        <div class="loading-indicator"></div>
+                    </div>
+                </div>
+            </article>
+            
+        </section>
+
+        <!-- Right Column: Central Dashboard -->
+        <section class="main-content" id="main-dashboard-content">
+            
+            <!-- Overall Stats Summary Cards -->
+            <header class="balances-grid" id="stats-summary-grid">
+                <div class="glass-card" style="padding: 1.25rem; display: flex; align-items: center; gap: 1rem;">
+                    <div class="avatar" style="background: var(--primary-light); color: var(--primary); font-size: 1.2rem;">📊</div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Total Expenses</span>
+                        <span id="display-expense-count" style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 700;">0</span>
+                    </div>
+                </div>
+                <div class="glass-card" style="padding: 1.25rem; display: flex; align-items: center; gap: 1rem;">
+                    <div class="avatar" style="background: var(--success-bg); color: var(--success); font-size: 1.2rem;">🤝</div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase;">Active Transfers</span>
+                        <span id="display-settlement-count" style="font-family: 'Outfit', sans-serif; font-size: 1.4rem; font-weight: 700;">0</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Visual Net Balances section -->
+            <article class="glass-card" id="balances-card">
+                <h2 class="card-title">⚖️ Net Balances (Who owes / gets back)</h2>
+                <div class="balances-grid" id="balances-grid">
+                    <!-- Dynamic rendering -->
+                    <div class="empty-state">
+                        <div class="loading-indicator"></div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Minimized Settlements Panel -->
+            <article class="glass-card" id="settlements-card">
+                <h2 class="card-title">💸 Minimized Settlements (Optimal Transfers)</h2>
+                <div class="settlement-list" id="settlements-container">
+                    <!-- Dynamic rendering -->
+                    <div class="empty-state">
+                        <div class="loading-indicator"></div>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Expenses Ledger -->
+            <article class="glass-card" id="expenses-card">
+                <div class="expense-header-action">
+                    <h2 class="card-title" style="margin: 0;">📜 Expense Ledger</h2>
+                    <button class="btn btn-primary" id="btn-add-expense">
+                        + Add Expense
+                    </button>
+                </div>
+                <div class="expense-list" id="expenses-container">
+                    <!-- Dynamic rendering -->
+                    <div class="empty-state">
+                        <div class="loading-indicator"></div>
+                    </div>
+                </div>
+            </article>
+
+        </section>
+        
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer" id="app-footer">
+        <p>© 2026 SplitEase Shared Expense Tracker. Built with Premium Glassmorphism Design.</p>
+    </footer>
+
+    <!-- ADD MEMBER MODAL -->
+    <div class="modal-overlay" id="modal-add-member">
+        <section class="modal-container" role="dialog" aria-labelledby="add-member-title">
+            <header class="modal-header">
+                <h3 class="modal-title" id="add-member-title">👥 Add Group Member</h3>
+                <button class="modal-close" aria-label="Close dialog">✕</button>
+            </header>
+            <form id="form-add-member">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="member-name" class="form-label">Full Name</label>
+                        <input type="text" id="member-name" class="form-input" placeholder="e.g., Sneha Sharma" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="member-email" class="form-label">Email Address</label>
+                        <input type="email" id="member-email" class="form-input" placeholder="e.g., sneha@example.com" required>
+                    </div>
+                    <div class="alert" id="alert-add-member"></div>
+                </div>
+                <footer class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Member</button>
+                </footer>
+            </form>
+        </section>
+    </div>
+
+    <!-- ADD EXPENSE MODAL -->
+    <div class="modal-overlay" id="modal-add-expense">
+        <section class="modal-container" role="dialog" aria-labelledby="add-expense-title">
+            <header class="modal-header">
+                <h3 class="modal-title" id="add-expense-title">💰 Log Group Expense</h3>
+                <button class="modal-close" aria-label="Close dialog">✕</button>
+            </header>
+            <form id="form-add-expense">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="expense-desc-input" class="form-label">Expense Description</label>
+                        <input type="text" id="expense-desc-input" class="form-input" placeholder="e.g., Cab ride to beach" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expense-amount" class="form-label">Total Amount (₹)</label>
+                        <input type="number" step="0.01" min="0.01" id="expense-amount" class="form-input" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expense-payer" class="form-label">Paid By</label>
+                        <select id="expense-payer" class="form-input" required>
+                            <!-- Dynamically populated -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-label" style="margin-bottom: 0.5rem;">Expense Split Method</div>
+                    <div class="split-selector">
+                        <label class="split-option active" id="split-option-equal">
+                            <input type="radio" name="splitType" id="split-type-equal" value="EQUAL" checked>
+                            <span class="split-option-title">Split Equally</span>
+                            <span class="split-option-desc">Divide sum among all active members</span>
+                        </label>
+                        <label class="split-option" id="split-option-custom">
+                            <input type="radio" name="splitType" id="split-type-custom" value="CUSTOM">
+                            <span class="split-option-title">Custom Splits</span>
+                            <span class="split-option-desc">Specify custom amounts for members</span>
+                        </label>
+                    </div>
+
+                    <!-- Custom Split Inputs (rendered dynamically) -->
+                    <div class="custom-splits-area" id="custom-splits-area">
+                        <div class="form-label" style="margin-bottom: 0.5rem;">Custom Splits Amounts (₹)</div>
+                        <div id="custom-splits-inputs" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                    
+                    <div class="alert" id="alert-add-expense"></div>
+                </div>
+                <footer class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-cancel">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Log Expense</button>
+                </footer>
+            </form>
+        </section>
+    </div>
+
+    <!-- UI Logic Script -->
+    <script src="/api/js/app.js"></script>
+</body>
+</html>
